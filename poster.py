@@ -12,6 +12,7 @@ from discord.ext import commands
 import requests
 import praw
 import base64
+from tweepy import errors as tweepy_errors
 
 class MediaProcessor:
     PLATFORM_LIMITS = {
@@ -201,6 +202,13 @@ class PostWorker(QThread):
         
     def post_to_twitter(self, media_files):
         try:
+            # Validate credentials
+            required_fields = ['bearer_token', 'api_key', 'api_secret', 'access_token', 'access_secret']
+            for field in required_fields:
+                if not self.credentials.get('twitter', {}).get(field):
+                    self.status_update.emit(f"✗ Twitter: Missing {field}")
+                    return
+            
             client = tweepy.Client(
                 bearer_token=self.credentials['twitter']['bearer_token'],
                 consumer_key=self.credentials['twitter']['api_key'],
@@ -220,6 +228,17 @@ class PostWorker(QThread):
                 )
                 api = tweepy.API(auth)
                 
+                # Test authentication
+                try:
+                    api.verify_credentials()
+                except tweepy.errors.Unauthorized:
+                    self.status_update.emit("✗ Twitter: Invalid credentials or insufficient permissions")
+                    self.status_update.emit("Ensure your app has read AND write permissions")
+                    # Try text-only post
+                    client.create_tweet(text=self.content)
+                    self.status_update.emit("✓ Posted to Twitter (text only)")
+                    return
+                
                 self.status_update.emit(f"Uploading {len(media_files[:4])} media files to Twitter...")
                 media_ids = []
                 
@@ -228,6 +247,9 @@ class PostWorker(QThread):
                         self.status_update.emit(f"Uploading file {i+1}/{len(media_files[:4])}: {os.path.basename(filepath)}")
                         media = api.media_upload(filepath)
                         media_ids.append(media.media_id)
+                    except tweepy.errors.Forbidden as e:
+                        self.status_update.emit(f"⚠ Upload forbidden for {os.path.basename(filepath)}")
+                        self.status_update.emit("Check Twitter app permissions: needs read AND write access")
                     except Exception as e:
                         self.status_update.emit(f"⚠ Failed to upload {os.path.basename(filepath)}: {str(e)}")
                 
@@ -237,6 +259,7 @@ class PostWorker(QThread):
                 else:
                     # No media could be uploaded, post text only
                     client.create_tweet(text=self.content)
+                    self.status_update.emit("✓ Posted to Twitter (text only, media upload failed)")
             else:
                 client.create_tweet(text=self.content)
             
@@ -598,6 +621,13 @@ class PostWorker(QThread):
 
     def post_to_reddit(self, media_files):
         try:
+            # Validate credentials before creating Reddit instance
+            required_fields = ['client_id', 'client_secret', 'username', 'password', 'user_agent']
+            for field in required_fields:
+                if not self.credentials.get('reddit', {}).get(field):
+                    self.status_update.emit(f"✗ Reddit: Missing {field}")
+                    return
+            
             reddit = praw.Reddit(
                 client_id=self.credentials['reddit']['client_id'],
                 client_secret=self.credentials['reddit']['client_secret'],
@@ -607,7 +637,11 @@ class PostWorker(QThread):
             )
             
             # Get subreddits (comma-separated)
-            subreddits_str = self.credentials['reddit']['subreddits']
+            subreddits_str = self.credentials['reddit'].get('subreddits', '')
+            if not subreddits_str:
+                self.status_update.emit("✗ Reddit: No subreddits specified")
+                return
+                
             subreddits = [s.strip() for s in subreddits_str.split(',') if s.strip()]
             
             if not subreddits:
