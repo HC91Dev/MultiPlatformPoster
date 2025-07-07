@@ -96,7 +96,7 @@ class SocialPoster(QMainWindow):
         platform_layout = QVBoxLayout()
         
         self.platform_checks = {}
-        platforms = ["Twitter", "Bluesky", "Discord", "Instagram", "Reddit"]
+        platforms = ["Twitter", "Bluesky", "Discord", "Reddit"]  # Removed Instagram
         for platform in platforms:
             checkbox = QCheckBox(platform)
             checkbox.setChecked(self.platform_prefs.get(platform, True))
@@ -152,9 +152,8 @@ class SocialPoster(QMainWindow):
         
         info_text = QLabel(
             "• Twitter: 280 chars, 4 media max\n"
-            "• Bluesky: 300 chars, 4 images max\n"
+            "• Bluesky: 300 chars, 4 images max (no videos)\n"
             "• Discord: 2000 chars, 10 embeds or 1 attachment (see options)\n"
-            "• Instagram: Images uploaded via imgBB, videos not supported yet\n"
             "• Reddit: Title from first line (300 chars max), 1 media per post"
         )
         info_text.setStyleSheet("color: #888888;")
@@ -316,7 +315,7 @@ class SocialPoster(QMainWindow):
                 'Twitter': True,
                 'Bluesky': True,
                 'Discord': True,
-                'Instagram': True,
+                'Instagram': False,  # Default to unchecked
                 'Reddit': True,
                 'discord_nitro': False,
                 'discord_separate': False,
@@ -424,7 +423,7 @@ class CredentialsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Configure Credentials")
         self.setModal(True)
-        self.resize(550, 650)
+        self.resize(550, 600)  # Reduced height since Instagram is removed
         self.credentials = credentials.copy()
         # Ensure imgbb exists
         if 'imgbb' not in self.credentials:
@@ -473,25 +472,6 @@ class CredentialsDialog(QDialog):
         discord_group.setLayout(discord_layout)
         scroll_layout.addWidget(discord_group)
         
-        # Instagram
-        instagram_group = QGroupBox("Instagram")
-        instagram_layout = QVBoxLayout()
-        instagram_layout.addWidget(QLabel("Access Token:"))
-        self.instagram_token = QLineEdit(self.credentials['instagram'].get('access_token', ''))
-        self.instagram_token.setEchoMode(QLineEdit.EchoMode.Password)
-        instagram_layout.addWidget(self.instagram_token)
-        instagram_layout.addWidget(QLabel("Account ID:"))
-        self.instagram_account = QLineEdit(self.credentials['instagram'].get('account_id', ''))
-        instagram_layout.addWidget(self.instagram_account)
-        
-        # Add info label
-        info_label = QLabel("Note: Requires Instagram Business Account & Facebook App\nImages are uploaded to imgBB before posting")
-        info_label.setStyleSheet("color: #888888; font-size: 11px;")
-        instagram_layout.addWidget(info_label)
-        
-        instagram_group.setLayout(instagram_layout)
-        scroll_layout.addWidget(instagram_group)
-        
         # Reddit
         reddit_group = QGroupBox("Reddit")
         reddit_layout = QVBoxLayout()
@@ -532,7 +512,7 @@ class CredentialsDialog(QDialog):
         scroll_layout.addWidget(reddit_group)
         
         # imgBB
-        imgbb_group = QGroupBox("imgBB (for Instagram and Discord embed image hosting)")
+        imgbb_group = QGroupBox("imgBB (for Discord embed image hosting)")
         imgbb_layout = QVBoxLayout()
         
         imgbb_layout.addWidget(QLabel("API Key:"))
@@ -569,8 +549,7 @@ class CredentialsDialog(QDialog):
         self.credentials['bluesky']['handle'] = self.bluesky_handle.text()
         self.credentials['bluesky']['password'] = self.bluesky_password.text()
         self.credentials['discord']['webhook_url'] = self.discord_webhook.text()
-        self.credentials['instagram']['access_token'] = self.instagram_token.text()
-        self.credentials['instagram']['account_id'] = self.instagram_account.text()
+        # Instagram credentials are kept but not modified through UI
         self.credentials['reddit']['client_id'] = self.reddit_client_id.text()
         self.credentials['reddit']['client_secret'] = self.reddit_client_secret.text()
         self.credentials['reddit']['username'] = self.reddit_username.text()
