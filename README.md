@@ -6,7 +6,6 @@
    - [Twitter Setup](#twitter-setup)
    - [Bluesky Setup](#bluesky-setup)
    - [Discord Setup](#discord-setup)
-   - [Instagram Setup](#instagram-setup)
    - [Reddit Setup](#reddit-setup)
    - [imgBB Setup](#imgbb-setup)
 3. [Using the Application](#using-the-application)
@@ -15,9 +14,10 @@
 
 ## Getting Started
 
-1. **Launch the Application**: Double-click the `SocialPoster.exe` file
+1. **Launch the Application**: Double-click the `multipost.exe` file
 2. **First Time Setup**: Click "Configure Credentials" to set up your social media accounts
 3. **Save Credentials**: Your credentials are saved locally in `social_credentials.json` (keep this file secure!)
+4. **Platform Preferences**: Your platform selections are saved in `platform_preferences.json`
 
 ## Setting Up Platform Credentials
 
@@ -76,29 +76,6 @@ Discord uses webhooks to post messages.
    https://discord.com/api/webhooks/[webhook-id]/[webhook-token]
    ```
 
-### Instagram Setup
-
-Instagram requires a Business account and Facebook App.
-
-1. **Convert to Business Account**:
-   - Open Instagram → Settings → Account
-   - Switch to Professional Account → Business
-
-2. **Create Facebook App**:
-   - Go to [developers.facebook.com](https://developers.facebook.com)
-   - Create new app → Business type
-   - Add Instagram Basic Display product
-
-3. **Get Access Token**:
-   - In your Facebook app, go to Instagram Basic Display
-   - Add your Instagram account as a test user
-   - Generate a long-lived access token
-
-4. **Get Account ID**:
-   - Use the Graph API Explorer or make an API call to get your Instagram Business Account ID
-
-**Note**: Instagram posting only supports images via imgBB upload. Videos are not supported yet.
-
 ### Reddit Setup
 
 Reddit requires creating an application.
@@ -121,7 +98,7 @@ Reddit requires creating an application.
 
 ### imgBB Setup
 
-imgBB is used for hosting images for Instagram and Discord embeds.
+imgBB is used for hosting images for Discord embeds.
 
 1. **Create imgBB Account**:
    - Go to [imgbb.com](https://imgbb.com)
@@ -182,7 +159,6 @@ imgBB is used for hosting images for Instagram and Discord embeds.
 | Twitter | 280 | 4 files | 5MB images, 512MB videos | JPG, PNG, GIF, MP4 |
 | Bluesky | 300 | 4 images | 1MB per image | No video support |
 | Discord | 2000 | 10 embeds or 1 attachment | 8MB (50MB Nitro) | All common formats |
-| Instagram | No limit | 1 image | 8MB | Via imgBB, no direct video |
 | Reddit | 300 title | 1 file | 20MB images, 1GB videos | One media per post |
 
 ## Troubleshooting
@@ -208,11 +184,6 @@ imgBB is used for hosting images for Instagram and Discord embeds.
 - Ensure webhook hasn't been deleted
 - Check channel permissions
 
-**Instagram: "Invalid access token"**:
-- Access tokens expire after 60 days
-- Regenerate token in Facebook Developer Console
-- Ensure account is Business/Creator type
-
 **Reddit: "Invalid credentials"**:
 - Double-check Client ID (found under app name)
 - Ensure using script type app
@@ -237,6 +208,8 @@ imgBB is used for hosting images for Instagram and Discord embeds.
 3. **Keep credentials secure** - never share your `social_credentials.json` file
 4. **Monitor rate limits** - avoid posting too frequently
 5. **Check Status tab** for detailed error messages
+6. **For Bluesky** - create an app password instead of using your main password
+7. **For Discord embeds** - ensure imgBB API key is configured
 
 ### Need Help?
 
@@ -244,3 +217,13 @@ imgBB is used for hosting images for Instagram and Discord embeds.
 - Platform-specific error codes usually indicate credential issues
 - File-related errors often mean size or format problems
 - For scheduling, keep the application running until post time
+
+### Supported Platforms
+
+Currently supported platforms:
+- **Twitter/X**: Full support for text, images, and videos
+- **Bluesky**: Text and images only (no video support)
+- **Discord**: Full support with multiple posting modes
+- **Reddit**: Full support for text and media posts
+
+*Note: Instagram support is in development and not currently available in the UI.*
